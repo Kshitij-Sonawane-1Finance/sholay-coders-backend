@@ -109,28 +109,6 @@ async def upload_file(file: UploadFile = File(...)):
             return pdfText
         else:
             raise HTTPException(status_code=400, detail="Unsupported file format.")
-        
-    
-
-# if __name__ == "__main__":
-#     try:
-#         file_path = "/Users/imsuraj/Projects/Hackathon/sholay-coders-backend/Untitled spreadsheet.xlsx"
-#         # file_path = "/Users/imsuraj/Projects/Hackathon/sholay-coders-backend/tax_questions.csv"
-#         # file_path = "/Users/imsuraj/Projects/Hackathon/sholay-coders-backend/Model Governance Analysis.pdf"
-#         file_extension = os.path.splitext(file_path)[1].lower()
-#         if file_extension == '.pdf':
-#             pdfText = extract_text_from_pdf(file_path)
-#             if pdfText:
-#                 generate_questions(pdfText, 5)
-#             else:
-#                 raise HTTPException(status_code=400, detail="PDF text extraction failed.")
-#         elif file_extension in ['.xls', '.xlsx', '.csv']: 
-#             pdfText = extract_question_from_file(file_path, file_extension)
-#         else:
-#             raise HTTPException(status_code=400, detail="Unsupported file format.")
-        
-#     except Exception as e:
-#         print(e)
 
 
 
