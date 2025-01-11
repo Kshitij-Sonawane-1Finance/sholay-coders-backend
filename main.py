@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException,File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
+from schema.add_QandA import insert_QandA
 
 load_dotenv()
 app = FastAPI()
@@ -62,10 +63,9 @@ def extract_question_from_file(file_path, file_extension):
         df = pd.read_csv(file_path) 
     else:
         df = pd.read_excel(file_path, engine='openpyxl')
-    questions_answers = df[['question', 'answers']].to_dict(orient='records')
+    questions_answers = df[['question', 'answer']].to_dict(orient='records')
     json_data = json.dumps(questions_answers, indent=4)
-    print(json_data)
-    return questions_answers
+    return insert_QandA(json_data)
 
             
 def generate_questions(text, count):
@@ -84,7 +84,7 @@ def generate_questions(text, count):
         responses =  chain.invoke({"text": text, "count": count})
         responseString = responses.replace("```json", "").replace("```", "").strip()
         json_data = json.loads(responseString)
-        return json_data
+        return insert_QandA(json_data)
     except Exception as e:
          raise HTTPException(status_code=500, detail=f"Error generating questions: {e}")
     
@@ -101,37 +101,14 @@ async def upload_file(file: UploadFile = File(...)):
             pdfText = extract_text_from_pdf(destination)
             if pdfText:
                 pdfText = generate_questions(pdfText, 5)
-                return pdfText
+                return {'message': pdfText}
             else:
                 raise HTTPException(status_code=400, detail="PDF text extraction failed.")
         elif file_extension in ['.xls', '.xlsx', '.csv']: 
             pdfText = extract_question_from_file(destination, file_extension)
-            return pdfText
+            return {'message': pdfText}
         else:
             raise HTTPException(status_code=400, detail="Unsupported file format.")
-        
-    
-
-# if __name__ == "__main__":
-#     try:
-#         file_path = "/Users/imsuraj/Projects/Hackathon/sholay-coders-backend/Untitled spreadsheet.xlsx"
-#         # file_path = "/Users/imsuraj/Projects/Hackathon/sholay-coders-backend/tax_questions.csv"
-#         # file_path = "/Users/imsuraj/Projects/Hackathon/sholay-coders-backend/Model Governance Analysis.pdf"
-#         file_extension = os.path.splitext(file_path)[1].lower()
-#         if file_extension == '.pdf':
-#             pdfText = extract_text_from_pdf(file_path)
-#             if pdfText:
-#                 generate_questions(pdfText, 5)
-#             else:
-#                 raise HTTPException(status_code=400, detail="PDF text extraction failed.")
-#         elif file_extension in ['.xls', '.xlsx', '.csv']: 
-#             pdfText = extract_question_from_file(file_path, file_extension)
-#         else:
-#             raise HTTPException(status_code=400, detail="Unsupported file format.")
-        
-#     except Exception as e:
-#         print(e)
-
 
 
 
