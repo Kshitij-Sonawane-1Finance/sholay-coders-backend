@@ -123,10 +123,10 @@ async def upload_file(name: str,url:str, dynamic: bool, count:str, file: UploadF
 async def analyze_model():
     return {"message": "Welcome to Sholay Coders!"}
 
-@app.post("/model_overview",)
+@app.get("/model_overview",)
 async def model_overview():
     return {"message": "Welcome to Sholay Coders!"}
 
-@app.post("/dashboard",)
+@app.get("/dashboard",)
 async def dashboard():
     return {"message": "Welcome to Sholay Coders!"}
