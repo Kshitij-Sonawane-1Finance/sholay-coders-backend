@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException,File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
+from schema.add_QandA import insert_QandA
 
 load_dotenv()
 app = FastAPI()
@@ -62,10 +63,9 @@ def extract_question_from_file(name, url, file_path, file_extension):
         df = pd.read_csv(file_path) 
     else:
         df = pd.read_excel(file_path, engine='openpyxl')
-    questions_answers = df[['question', 'answers']].to_dict(orient='records')
+    questions_answers = df[['question', 'answer']].to_dict(orient='records')
     json_data = json.dumps(questions_answers, indent=4)
-    print(json_data)
-    return questions_answers
+    return insert_QandA(json_data)
 
             
 def generate_questions(name, url, text, count):
@@ -84,7 +84,7 @@ def generate_questions(name, url, text, count):
         responses =  chain.invoke({"text": text, "count": count})
         responseString = responses.replace("```json", "").replace("```", "").strip()
         json_data = json.loads(responseString)
-        return json_data
+        return insert_QandA(json_data)
     except Exception as e:
          raise HTTPException(status_code=500, detail=f"Error generating questions: {e}")
     
@@ -109,19 +109,20 @@ async def upload_file(name: str,url:str, dynamic: bool, count:str, file: UploadF
         if file_extension == '.pdf' and dynamic:
             pdfText = extract_text_from_pdf(destination)
             if pdfText:
-                pdfText = generate_questions(name, url, pdfText, count)
-                return pdfText
+                pdfText = generate_questions(pdfText, 5)
+                return {'message': pdfText}
             else:
                 raise HTTPException(status_code=400, detail="PDF text extraction failed.")
-        elif file_extension in ['.xls', '.xlsx', '.csv'] and not dynamic: 
-            pdfText = extract_question_from_file(name, url, destination, file_extension)
-            return pdfText
+        elif file_extension in ['.xls', '.xlsx', '.csv']: 
+            pdfText = extract_question_from_file(destination, file_extension)
+            return {'message': pdfText}
         else:
             raise HTTPException(status_code=400, detail="Unsupported file format.")
         
 @app.post("/analyze_model",)
 async def analyze_model():
     return {"message": "Welcome to Sholay Coders!"}
+
 
 @app.get("/model_overview",)
 async def model_overview():

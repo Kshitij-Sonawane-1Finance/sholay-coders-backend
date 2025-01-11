@@ -12,8 +12,6 @@ class Model_Accuracy(Base):
     model_url = Column(String, unique=True, nullable=False)
     date_time = Column(DateTime, default=datetime.now())  
 
-    # Relationship: One model can be linked to many model questions
-    # model_questions = relationship('Model_Question', back_populates='model')
 
 class Question_Answer(Base):
     __tablename__ = 'question_answer'
@@ -21,10 +19,9 @@ class Question_Answer(Base):
     id = Column(Integer, primary_key=True)
     question = Column(String, unique=False, nullable=True)
     answer = Column(String, unique=False, nullable=True)  
+    model_id = Column(Integer, unique=False, nullable=True)
     date_time = Column(DateTime, default=datetime.now())  
 
-    # Relationship: One question can be linked to many model questions
-    # model_questions = relationship('Model_Question', back_populates='question')
 
 class Model_Question(Base):
     __tablename__ = 'model_question'
@@ -33,12 +30,6 @@ class Model_Question(Base):
     model_id = Column(Integer, unique=False, nullable=True)
     question_id = Column(Integer, unique=False, nullable=True)  
     status = Column(Boolean, default=false)  
-
-    # Relationship to Model_Accuracy (Many-to-One)
-    model = relationship('Model_Accuracy', back_populates='model_questions')
-
-    # Relationship to Question_Answer (Many-to-One)
-    question = relationship('Question_Answer', back_populates='model_questions')
 
 # Create the table in the database
 Base.metadata.create_all(engine)
